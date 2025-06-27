@@ -1,69 +1,57 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>.lang 逆引き置換ツール</title>
+  <meta charset="UTF-8">
+  <title>.lang 置換ツール（value→key）</title>
   <style>
-    body {
-      background: #121212; color: #eee;
-      font-family: sans-serif; padding: 20px;
-    }
+    body { background: #1a1a1a; color: #eee; font-family: sans-serif; padding: 20px; }
     textarea {
-      width: 100%; height: 180px;
-      margin: 10px 0; padding: 10px;
-      background: #1e1e1e; color: #eee;
-      border: 1px solid #444; font-family: monospace;
+      width: 100%; height: 200px; margin: 10px 0; padding: 10px;
+      background: #2a2a2a; color: #eee; border: 1px solid #555;
+      font-family: monospace;
     }
     button {
-      font-size: 1.1em; padding: 10px 20px; margin-top: 10px;
+      padding: 10px 20px; font-size: 1.1em;
+      background: #444; color: white; border: none; cursor: pointer;
     }
-    .container { display: flex; flex-direction: column; gap: 20px; }
+    button:hover {
+      background: #666;
+    }
   </style>
 </head>
 <body>
 
-<h1>.lang 逆引き置換ツール</h1>
+<h1>.langの value を key に置き換えるツール</h1>
 <p>
-  .langファイルの内容（<code>a=b</code> 形式）をコピペして、翻訳済みのテキスト内の <code>"b"</code> を <code>"a"</code> に置換します。
+  例：<code>accessibility.disableTTS=今後、このメッセージを表示しない</code><br>
+  ↓<br>
+  <code>accessibility.disableTTS=accessibility.disableTTS</code>
 </p>
 
-<div class="container">
-  <div>
-    <label for="rules">🔧 .lang内容（例：<code>a=b</code>）※ 複数行対応</label>
-    <textarea id="rules" placeholder="a=b&#10;c=こんにちは&#10;d=今後、このメッセージを表示しない"></textarea>
-  </div>
+<label for="input">🔧 元の.langファイルの内容を貼り付けてください</label>
+<textarea id="input" placeholder="example.key1=こんにちは&#10;example.key2=さようなら"></textarea>
 
-  <div>
-    <label for="input">📄 変換対象テキスト全体</label>
-    <textarea id="input" placeholder='{"text": "こんにちは", "next": "今後、このメッセージを表示しない"}'></textarea>
-  </div>
+<button onclick="replaceLang()">▶ 変換実行</button>
 
-  <button onclick="applyReplace()">▶ 一括置換を実行</button>
-
-  <div>
-    <label for="output">📝 変換後のテキスト</label>
-    <textarea id="output" readonly></textarea>
-  </div>
-</div>
+<label for="output">📝 変換後の.lang出力</label>
+<textarea id="output" readonly></textarea>
 
 <script>
-function applyReplace() {
-  const ruleText = document.getElementById("rules").value.trim();
-  const inputText = document.getElementById("input").value;
-  let outputText = inputText;
+function replaceLang() {
+  const input = document.getElementById("input").value;
+  const lines = input.split(/\r?\n/);
+  const outputLines = [];
 
-  const rules = ruleText.split(/\r?\n/).filter(l => l.includes('='));
-
-  for (let line of rules) {
-    const [key, value] = line.split('=');
-    if (key && value) {
-      const escapedValue = value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regex = new RegExp('"' + escapedValue + '"', 'g');
-      outputText = outputText.replace(regex, `"${key}"`);
+  for (let line of lines) {
+    if (line.trim().startsWith("#") || !line.includes("=")) {
+      outputLines.push(line); // コメントや空行はそのまま
+      continue;
     }
+    const [key] = line.split("=");
+    outputLines.push(`${key}=${key}`);
   }
 
-  document.getElementById("output").value = outputText;
+  document.getElementById("output").value = outputLines.join("\n");
 }
 </script>
 
